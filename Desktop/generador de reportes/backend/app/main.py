@@ -55,6 +55,7 @@ else:
         "http://127.0.0.1:4173",
         "http://localhost:65017",
         "http://127.0.0.1:65017",
+        "https://generador-de-reporte.onrender.com"
     ]
 
 app.add_middleware(
