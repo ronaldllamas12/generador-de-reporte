@@ -55,7 +55,8 @@ else:
         "http://127.0.0.1:4173",
         "http://localhost:65017",
         "http://127.0.0.1:65017",
-        "https://generador-de-reporte.onrender.com"
+        "https://generador-de-reporte.onrender.com",
+        "https://generador-de-reporte.vercel.app"
     ]
 
 app.add_middleware(
