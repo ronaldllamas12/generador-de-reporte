@@ -62,6 +62,9 @@ yarn.lock
 
 # Vite
 /.vite
+# Frontend build artifacts
+frontend/.vite/
+frontend/node_modules/
 
 # Generated files
 *.log
