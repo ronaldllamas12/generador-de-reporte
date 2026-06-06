@@ -1,11 +1,13 @@
-from pathlib import Path
-from datetime import datetime, time
+import mimetypes
 import re
 import unicodedata
+import uuid
+from datetime import datetime, time
+from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
+import httpx
 from app.core.config import get_settings
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 class ReportService:
@@ -27,14 +29,114 @@ class ReportService:
         template = env.get_template("report.html")
         
         machine_groups = self._build_machine_groups(shift, events, machine_setups or [])
-        html_content = template.render(shift=shift, machine_groups=machine_groups)
 
-        output_file = reports_dir / f"reporte_turno_{shift.id}.pdf"
-        with open(output_file, "wb") as pdf_file:
-            result = pisa.CreatePDF(html_content, dest=pdf_file)
-        if result.err:
-            raise RuntimeError(f"Error al generar el PDF: {result.err}")
-        return f"/static/reports/{output_file.name}"
+        # Prefetch remote images to local files to avoid remote fetch/format issues
+        tmp_files = self._prefetch_images(machine_groups, reports_dir)
+
+        try:
+            html_content = template.render(shift=shift, machine_groups=machine_groups)
+
+            output_file = reports_dir / f"reporte_turno_{shift.id}.pdf"
+            with open(output_file, "wb") as pdf_file:
+                result = pisa.CreatePDF(html_content, dest=pdf_file)
+            if result.err:
+                raise RuntimeError(f"Error al generar el PDF: {result.err}")
+            return f"/static/reports/{output_file.name}"
+        finally:
+            # Clean up temporary downloaded files
+            for p in tmp_files:
+                try:
+                    p.unlink()
+                except Exception:
+                    pass
+
+    def _prefetch_images(self, machine_groups: list, reports_dir: Path) -> list[Path]:
+        tmp_dir = reports_dir / "tmp_images"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        downloaded: list[Path] = []
+
+        image_fields = [
+            "img_materias_primas",
+            "img_condiciones_proceso",
+            "img_temp_secadores",
+            "img_extraccion_adhesivo",
+            "img_tiempo_paradas_turno_maquina",
+        ]
+
+        def _ensure_list(value):
+            if value is None:
+                return []
+            if isinstance(value, list):
+                return value
+            return [value]
+
+        for group in machine_groups:
+            # Check setup and orders
+            targets = []
+            setup = group.get("setup")
+            if setup:
+                targets.append(setup)
+            for order in group.get("orders", []):
+                targets.append(order)
+            # events may have image_path
+            for ev in group.get("events", []):
+                path = ev.get("image_path")
+                if path and isinstance(path, str) and path.lower().startswith("http"):
+                    try:
+                        saved = self._download_remote_image(path, tmp_dir)
+                        ev["image_path"] = f"file://{saved.resolve().as_posix()}"
+                        downloaded.append(saved)
+                    except Exception as exc:
+                        raise RuntimeError(f"Error descargando imagen de evento: {path} -> {exc}")
+
+            for item in targets:
+                for field in image_fields:
+                    raw = item.get(field)
+                    items = _ensure_list(raw)
+                    new_items = []
+                    for img in items:
+                        # support stored objects {"url":..., "title":...} or plain strings
+                        img_url = img.get("url") if isinstance(img, dict) else img
+                        img_title = img.get("title") if isinstance(img, dict) else None
+                        if not img_url or not isinstance(img_url, str) or not img_url.lower().startswith("http"):
+                            new_items.append(img)
+                            continue
+                        try:
+                            saved = self._download_remote_image(img_url, tmp_dir)
+                            downloaded.append(saved)
+                            local_ref = f"file://{saved.resolve().as_posix()}"
+                            if isinstance(img, dict):
+                                new_items.append({"url": local_ref, "title": img_title})
+                            else:
+                                new_items.append(local_ref)
+                        except Exception as exc:
+                            raise RuntimeError(f"Error descargando imagen: {img_url} -> {exc}")
+                    item[field] = new_items
+
+        return downloaded
+
+    def _download_remote_image(self, url: str, target_dir: Path) -> Path:
+        try:
+            with httpx.Client(timeout=20.0, verify=True) as client:
+                resp = client.get(url)
+                resp.raise_for_status()
+                content_type = resp.headers.get("content-type", "")
+                ext = None
+                if content_type:
+                    ext = mimetypes.guess_extension(content_type.split(";")[0].strip())
+                if not ext:
+                    # try to infer from URL path
+                    path = url.split("?")[0]
+                    if "." in path:
+                        ext = "." + path.rsplit(".", 1)[1]
+                if not ext:
+                    ext = ".jpg"
+
+                dest = target_dir / f"{uuid.uuid4().hex}{ext}"
+                dest.write_bytes(resp.content)
+                return dest
+        except Exception as exc:
+            raise
 
     def _format_time(self, value: time | None) -> str:
         if value is None:

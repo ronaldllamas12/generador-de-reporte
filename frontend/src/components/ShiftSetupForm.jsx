@@ -1,5 +1,6 @@
 import { ArrowLeft, Camera, CheckCircle2, ImagePlus, Loader2, Smartphone, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import Cropper from 'react-easy-crop'
 
 
 const PROCESS_PHOTO_CATEGORIES = [
@@ -53,6 +54,16 @@ function buildRetainedPayload(items) {
 function ImageUpload({ label, required, value, onChange, compactMode }) {
   const [draftTitle, setDraftTitle] = useState('')
   const [pendingFile, setPendingFile] = useState(null)
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null)
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropRect, setCropRect] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [cropPos, setCropPos] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  const imgRef = useRef(null)
+  const cropContainerRef = useRef(null)
+  const [aspectPreset, setAspectPreset] = useState('free')
 
   const savedEntries = Array.isArray(value) ? value : []
 
@@ -60,23 +71,146 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
     const first = files[0]
+
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl)
+    }
+
     setPendingFile(first)
-    // Save selected file to user's device automatically
-    ;(async () => {
-      try {
-        await saveFileToDevice(first)
-      } catch (err) {
-        // ignore errors; saving is a best-effort enhancement
-        console.warn('Auto-save to device failed', err)
-      }
-    })()
+    setPendingPreviewUrl(URL.createObjectURL(first))
     setDraftTitle('')
     e.target.value = ''
   }
 
+  function openCropper() {
+    if (!pendingPreviewUrl) return
+    // initialize cropRect with aspect preset if any
+    if (aspectPreset && aspectPreset !== 'free' && imgRef.current) {
+      const img = imgRef.current
+      const w = img.width || 600
+      const h = img.height || 360
+      const ar = Number(aspectPreset)
+      let cw = w
+      let ch = Math.round(w / ar)
+      if (ch > h) {
+        ch = h
+        cw = Math.round(h * ar)
+      }
+      const x = Math.round((w - cw) / 2)
+      const y = Math.round((h - ch) / 2)
+      setCropRect({ x, y, w: cw, h: ch })
+    } else {
+      setCropRect(null)
+    }
+    setShowCropper(true)
+  }
+
+  function onCropMouseDown(e) {
+    if (!cropContainerRef.current || !imgRef.current) return
+    setIsDragging(true)
+    const rect = cropContainerRef.current.getBoundingClientRect()
+    const startX = e.clientX - rect.left
+    const startY = e.clientY - rect.top
+    setCropRect({ x: startX, y: startY, w: 0, h: 0 })
+  }
+
+  function onCropMouseMove(e) {
+    if (!isDragging || !cropRect || !cropContainerRef.current) return
+    const rect = cropContainerRef.current.getBoundingClientRect()
+    const mx = e.clientX - rect.left
+    const my = e.clientY - rect.top
+    let x = Math.min(cropRect.x, mx)
+    let y = Math.min(cropRect.y, my)
+    let w = Math.abs(mx - cropRect.x)
+    let h = Math.abs(my - cropRect.y)
+    if (aspectPreset && aspectPreset !== 'free') {
+      const ar = Number(aspectPreset)
+      if (w / Math.max(h, 1) > ar) {
+        // width too big -> adjust width
+        w = Math.round(h * ar)
+      } else {
+        // height too big or correct -> adjust height
+        h = Math.round(w / (ar || 1))
+      }
+      // keep within bounds
+      if (x + w > rect.width) w = Math.max(1, rect.width - x)
+      if (y + h > rect.height) h = Math.max(1, rect.height - y)
+    }
+    setCropRect({ x, y, w, h })
+  }
+
+  function onCropMouseUp() {
+    setIsDragging(false)
+  }
+  function onCropComplete(croppedArea, croppedAreaPixels) {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }
+
+  async function applyCrop() {
+    if (!croppedAreaPixels || !pendingPreviewUrl || !pendingFile) {
+      setShowCropper(false)
+      return
+    }
+
+    // create image element
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.src = pendingPreviewUrl
+    await new Promise((res, rej) => {
+      img.onload = res
+      img.onerror = rej
+    })
+
+    const { width: sw, height: sh, x: sx, y: sy } = croppedAreaPixels
+
+    // draw cropped area to canvas
+    const canvas = document.createElement('canvas')
+    canvas.width = sw
+    canvas.height = sh
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
+
+    // Resize to max dimension
+    const MAX_DIM = 1600
+    let targetW = sw
+    let targetH = sh
+    if (Math.max(sw, sh) > MAX_DIM) {
+      if (sw >= sh) {
+        targetW = MAX_DIM
+        targetH = Math.round((MAX_DIM * sh) / sw)
+      } else {
+        targetH = MAX_DIM
+        targetW = Math.round((MAX_DIM * sw) / sh)
+      }
+    }
+
+    const outCanvas = document.createElement('canvas')
+    outCanvas.width = targetW
+    outCanvas.height = targetH
+    const outCtx = outCanvas.getContext('2d')
+    outCtx.drawImage(canvas, 0, 0, sw, sh, 0, 0, targetW, targetH)
+
+    const blob = await new Promise((res) => outCanvas.toBlob(res, 'image/jpeg', 0.85))
+    if (!blob) {
+      setShowCropper(false)
+      return
+    }
+
+    const croppedFile = new File([blob], pendingFile.name || 'cropped.jpg', { type: blob.type })
+
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl)
+    }
+    const newUrl = URL.createObjectURL(croppedFile)
+    setPendingFile(croppedFile)
+    setPendingPreviewUrl(newUrl)
+    setShowCropper(false)
+  }
+
   function handleSavePendingPhoto() {
-    if (!pendingFile || !draftTitle.trim()) return
+    if (!pendingFile) return
     const title = draftTitle.trim()
+    if (!title) return
 
     onChange([
       ...savedEntries,
@@ -87,6 +221,10 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
         isExisting: false,
       },
     ])
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl)
+      setPendingPreviewUrl(null)
+    }
     setPendingFile(null)
     setDraftTitle('')
   }
@@ -96,9 +234,6 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
   }
 
   function resolvePreview(file) {
-    if (file instanceof File) {
-      return URL.createObjectURL(file)
-    }
     if (file && typeof file === 'object' && typeof file.url === 'string' && file.url.trim()) {
       return file.url
     }
@@ -109,7 +244,15 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
   }
 
   const canSavePendingPhoto = Boolean(pendingFile) && draftTitle.trim().length > 0
-  const pendingPreview = resolvePreview(pendingFile)
+  const pendingPreview = pendingPreviewUrl
+
+  useEffect(() => {
+    return () => {
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl)
+      }
+    }
+  }, [pendingPreviewUrl])
 
   return (
     <div className="grid gap-2">
@@ -123,7 +266,7 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
         </div>
 
         <div className="mb-3 grid gap-2">
-          <span className="text-xs font-medium text-slate-600">Titulo de la imagen</span>
+          <span className="text-xs font-medium text-slate-600">Título de la imagen <span className="text-rose-500">*</span></span>
           <input
             type="text"
             value={draftTitle}
@@ -132,11 +275,14 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
             placeholder={pendingFile ? 'Ej. Tablero de control al inicio' : 'Primero toma o carga una foto'}
             className={`${compactMode ? 'h-12 text-base' : 'h-10 text-sm'} w-full rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 outline-none focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/20 placeholder:text-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
           />
+          {pendingFile ? (
+            <p className="text-xs text-slate-500">El título es obligatorio antes de guardar la imagen.</p>
+          ) : null}
         </div>
 
         {pendingFile ? (
           <div className="mb-4 overflow-hidden rounded-2xl border border-sky-400/30 bg-sky-50">
-            {pendingPreview ? <img src={pendingPreview} alt="Vista previa pendiente" className="h-40 w-full object-cover" /> : null}
+            {pendingPreview ? <img ref={imgRef} src={pendingPreview} alt="Vista previa pendiente" className="h-40 w-full object-cover" /> : null}
             <div className="flex items-center justify-between gap-3 p-3 text-sm text-slate-700">
               <span className="font-medium">Foto pendiente por guardar</span>
               <button
@@ -147,6 +293,44 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
               >
                 Guardar foto
               </button>
+            </div>
+            <div className="flex items-center justify-end gap-2 p-3">
+              <button type="button" onClick={openCropper} className="inline-flex items-center gap-2 rounded-xl bg-sky-100 px-3 py-2 text-sm text-sky-800">Recortar</button>
+            </div>
+          </div>
+        ) : null}
+
+        {showCropper ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="mx-4 max-w-3xl rounded-xl bg-white p-4">
+              <div className="mb-3 text-sm font-medium">Ajusta el recorte y el zoom</div>
+              <div className="mb-3 flex gap-2">
+                <button type="button" onClick={() => setAspectPreset('free')} className={`rounded-xl px-3 py-1 ${aspectPreset==='free'?'bg-slate-200':'bg-slate-100'}`}>Libre</button>
+                <button type="button" onClick={() => setAspectPreset('1')} className={`rounded-xl px-3 py-1 ${aspectPreset==='1'?'bg-slate-200':'bg-slate-100'}`}>1:1</button>
+                <button type="button" onClick={() => setAspectPreset((4/3).toString())} className={`rounded-xl px-3 py-1 ${aspectPreset===(4/3).toString()?'bg-slate-200':'bg-slate-100'}`}>4:3</button>
+                <button type="button" onClick={() => setAspectPreset((16/9).toString())} className={`rounded-xl px-3 py-1 ${aspectPreset===(16/9).toString()?'bg-slate-200':'bg-slate-100'}`}>16:9</button>
+              </div>
+
+              <div style={{ width: 600, maxWidth: '80vw', height: 360, position: 'relative', background: '#f8fafc' }}>
+                <Cropper
+                  image={pendingPreviewUrl}
+                  crop={cropPos}
+                  zoom={zoom}
+                  aspect={aspectPreset === 'free' ? undefined : Number(aspectPreset)}
+                  onCropChange={setCropPos}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              </div>
+
+              <div className="mt-3 flex items-center gap-3">
+                <label className="text-sm">Zoom</label>
+                <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
+                <div className="ml-auto flex gap-2">
+                  <button type="button" onClick={() => setShowCropper(false)} className="rounded-xl bg-slate-100 px-3 py-2">Cancelar</button>
+                  <button type="button" onClick={applyCrop} className="rounded-xl bg-emerald-500 px-3 py-2 text-white">Aplicar recorte</button>
+                </div>
+              </div>
             </div>
           </div>
         ) : null}
@@ -175,7 +359,7 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
         ) : null}
 
         <div className="mb-4 rounded-2xl border border-sky-400/20 bg-white p-3 text-xs text-slate-600">
-          Las fotos quedan en borrador dentro del formulario y solo se guardan cuando presionas confirmar.
+          Las fotos quedan en borrador dentro del formulario y solo se guardan cuando presionas confirmar. La vista previa se muestra desde el archivo local del dispositivo, no desde Cloudinary.
         </div>
 
         {/* Upload buttons - Camera and Gallery */}

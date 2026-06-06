@@ -213,6 +213,16 @@
         break-inside: avoid;
       }
 
+      .photo-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+        justify-content: space-between;
+        max-width: 880px;
+        margin: 0 auto;
+      }
+
       .photo-category {
         font-size: 8.2pt;
         font-weight: bold;
@@ -224,8 +234,10 @@
       .photo-item {
         border: 1px solid #d5dbe3;
         background: #fff;
-        padding: 4px;
-        margin-bottom: 8px;
+        padding: 6px;
+        box-sizing: border-box;
+        width: calc(50% - 12px);
+        max-width: 400px;
         page-break-inside: avoid;
         break-inside: avoid;
         -pdf-keep-with-next: true;
@@ -244,12 +256,13 @@
 
       .photo {
         display: block;
-        width: 400px;
-        max-width: 320px;
-        max-height: 210px;
+        width: 100%;
+        max-width: 400px;
+        height: 250px;
+        object-fit: cover;
         border: 1px solid #bdbdbd;
-        margin: 2px 0 0;
-        page-break-before: avoid;
+        margin: 8px 0 0;
+        page-break-inside: avoid;
       }
 
       .event-card {
