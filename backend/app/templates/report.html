@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @page {
+        size: A4;
+        margin: 14mm 12mm 16mm 12mm;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 9.5pt;
+        color: #1f2933;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+      }
+
+      .header-table,
+      .meta-table,
+      .summary-table,
+      .detail-table,
+      .signature-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .header-table {
+        margin-bottom: 12px;
+      }
+
+      .logo-cell {
+        width: 125px;
+        border: 1px solid #1f2937;
+        background: #ffffff;
+        text-align: center;
+        padding: 9px 10px;
+      }
+
+      .title-cell {
+        border: 1px solid #1f2937;
+        border-left: none;
+        text-align: center;
+        padding: 11px 10px;
+        background: #0f172a;
+        color: #fff;
+      }
+
+      .logo-primary {
+        width: 110px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .logo-subtitle {
+        font-size: 7pt;
+        color: #ffffff;
+      }
+
+      .report-title {
+        font-size: 16pt;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      .report-subtitle {
+        font-size: 8.8pt;
+        color: #dbeafe;
+        margin-top: 4px;
+      }
+
+      .meta-table {
+        margin-bottom: 12px;
+      }
+
+      .meta-label {
+        border: 1px solid #cbd5e1;
+        background: #e2e8f0;
+        padding: 5px 6px;
+        font-size: 8pt;
+        font-weight: bold;
+        text-align: center;
+        color: #334155;
+      }
+
+      .meta-value {
+        border: 1px solid #cbd5e1;
+        padding: 6px 8px;
+        font-size: 10.5pt;
+        text-align: center;
+        font-weight: bold;
+        color: #0f172a;
+      }
+
+      .summary-table {
+        margin-bottom: 14px;
+        font-size: 9.5pt;
+      }
+
+      .summary-label,
+      .summary-value {
+        border: 1px solid #d3dae6;
+        padding: 6px 8px;
+      }
+
+      .summary-label {
+        background: #f8fafc;
+        font-weight: bold;
+        width: 125px;
+        color: #475569;
+      }
+
+      .summary-value {
+        color: #111827;
+      }
+
+      .divider {
+        border: none;
+        border-top: 1px solid #cbd5e1;
+        margin: 16px 0 12px;
+      }
+
+      .executive-note {
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        padding: 8px 10px;
+        margin: 0 0 14px;
+        font-size: 9.5pt;
+        line-height: 1.45;
+        color: #334155;
+      }
+
+      .machine-banner {
+        background: #1e3a5f;
+        color: #fff;
+        padding: 9px 11px;
+        font-size: 11pt;
+        font-weight: bold;
+        margin-bottom: 9px;
+        border-bottom: 3px solid #38bdf8;
+      }
+
+      .machine-banner span {
+        font-weight: normal;
+        font-size: 8.8pt;
+      }
+
+      .order-card {
+        margin-bottom: 13px;
+        padding: 10px 11px;
+        border: 1px solid #d9e2ec;
+        background: #ffffff;
+      }
+
+      .section-title {
+        font-size: 10.8pt;
+        font-weight: bold;
+        color: #0f172a;
+        margin: 0 0 7px;
+      }
+
+      .section-lead {
+        font-size: 10pt;
+        line-height: 1.6;
+        text-align: justify;
+        margin: 0 0 10px;
+        border: none;
+      }
+
+      .detail-table {
+        font-size: 9pt;
+        margin-bottom: 10px;
+      }
+
+      .detail-table td {
+        border: 1px solid #d3dae6;
+        padding: 6px 7px;
+        vertical-align: top;
+      }
+
+      .detail-label {
+        background: #eef2f7;
+        font-weight: bold;
+        width: 125px;
+        color: #334155;
+      }
+
+      .subsection-title {
+        font-size: 10pt;
+        font-weight: bold;
+        color: #1e3a5f;
+        margin: 10px 0 5px;
+      }
+
+      .support-text {
+        font-size: 9.5pt;
+        line-height: 1.6;
+        text-align: justify;
+        margin: 0 0 8px;
+        border: none;
+      }
+
+      .photo-block {
+        border: 1px solid #d6dbe1;
+        background: #f8fafc;
+        padding: 8px;
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .photo-category {
+        font-size: 8.2pt;
+        font-weight: bold;
+        color: #0f172a;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+      }
+
+      .photo-item {
+        border: 1px solid #d5dbe3;
+        background: #fff;
+        padding: 4px;
+        margin-bottom: 8px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        -pdf-keep-with-next: true;
+      }
+
+      .photo-title {
+        font-size: 8.5pt;
+        color: #4b5563;
+        margin: 0;
+        line-height: 1.2;
+        font-weight: bold;
+        page-break-after: avoid;
+        -pdf-keep-with-next: true;
+        text-transform: uppercase;
+      }
+
+      .photo {
+        display: block;
+        width: 400px;
+        max-width: 320px;
+        max-height: 210px;
+        border: 1px solid #bdbdbd;
+        margin: 2px 0 0;
+        page-break-before: avoid;
+      }
+
+      .event-card {
+        border-left: 3px solid #0284c7;
+        background: #f8fafc;
+        padding: 7px 8px 7px 10px;
+        margin-bottom: 8px;
+        font-size: 9.5pt;
+      }
+
+      .event-time {
+        font-weight: bold;
+      }
+
+      .muted {
+        color: #777;
+        font-style: italic;
+      }
+
+      .signature-table {
+        width: 100%;
+        margin-top: 50px;
+        border-collapse: collapse;
+      }
+
+      .signature-cell {
+        width: 33.33%;
+        text-align: center;
+        vertical-align: bottom;
+        padding: 15px;
+      }
+
+      .signature-space {
+        height: 80px;
+      }
+
+      .signature-line {
+        border-top: 1px solid #000;
+        margin-bottom: 5px;
+      }
+
+      .signature-name {
+        font-weight: bold;
+      }
+
+      .signature-role {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .footer {
+        margin-top: 25px;
+        background: #0f2047;
+        color: #ffffff;
+        font-size: 8pt;
+        text-align: center;
+        padding: 8px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    {% set yy = shift.shift_date.strftime('%y') %} {% set mm =
+    shift.shift_date.strftime('%m') %} {% set dd =
+    shift.shift_date.strftime('%d') %} {% set informe_num = "IN-" + yy + mm + dd
+    + "-" + "%02d"|format(shift.shift_number) %} {% set totals =
+    namespace(events=0, orders=0) %} {% for group in machine_groups %} {% set
+    totals.events = totals.events + group.events|length %} {% set totals.orders
+    = totals.orders + group.orders|length %} {% endfor %} {% macro
+    format_machine_status(status) %} {% if status == 'en_mantenimiento' %}En
+    mantenimiento {% elif status == 'fuera_de_servicio' %}Fuera de servicio {%
+    elif status == 'en_produccion' %}En producción {% elif status ==
+    'sin_registro' %}Sin registro {% elif status %}{{ status.replace('_', '
+    ')|capitalize }} {% else %}No registrado {% endif %} {% endmacro %}
+
+    <table class="header-table">
+      <tr>
+        <td class="logo-cell">
+          <img
+            src="https://res.cloudinary.com/dms34zmay/image/upload/v1779999406/ctzijytwcykhcppafwpi.webp"
+            alt="Logo"
+            class="logo-primary"
+          />
+        </td>
+        <td class="title-cell">
+          <div class="report-title">INFORME DE TURNO Y PRODUCCIÓN</div>
+          <div class="report-subtitle">
+            Recepción de turno, condiciones de proceso, evidencia fotográfica y
+            novedades
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <table class="meta-table">
+      <tr>
+        <td class="meta-label">INFORME</td>
+        <td class="meta-label">RESPONSABLE</td>
+        <td class="meta-label">TURNO</td>
+        <td class="meta-label">FECHA</td>
+      </tr>
+      <tr>
+        <td class="meta-value">{{ informe_num }}</td>
+        <td class="meta-value">
+          {% if shift.user %}{{ shift.user.full_name }}{% else %}Sin
+          responsable{% endif %}
+        </td>
+        <td class="meta-value">{{ shift.shift_number }}</td>
+        <td class="meta-value">{{ shift.shift_date.strftime('%d/%m/%Y') }}</td>
+      </tr>
+    </table>
+
+    <table class="summary-table">
+      <tr>
+        <td class="summary-label">Área</td>
+        <td class="summary-value">{{ shift.area }}</td>
+      </tr>
+      <tr>
+        <td class="summary-label">Hora de inicio</td>
+        <td class="summary-value">
+          {% if shift.shift_number == 2 %}07:00 P.M{% else %}07:00 A.M{% endif
+          %}
+        </td>
+        <td class="summary-label">Hora de cierre</td>
+        <td class="summary-value">
+          {% if shift.shift_number == 2 %}07:00 A.M{% else %}07:00 P.M {% endif
+          %}
+        </td>
+      </tr>
+      <tr>
+        <td class="summary-label">Máquinas en turno</td>
+        <td class="summary-value">{{ machine_groups|length }}</td>
+        <td class="summary-label">Órdenes documentadas</td>
+        <td class="summary-value">{{ totals.orders }}</td>
+      </tr>
+      <tr>
+        <td class="summary-label">Total novedades</td>
+        <td class="summary-value">{{ totals.events }}</td>
+        <td class="summary-label">Generado para</td>
+        <td class="summary-value">Seguimiento operativo y trazabilidad</td>
+      </tr>
+    </table>
+
+    <div class="executive-note">
+      Este informe consolida la recepción del turno, el estado operativo de las
+      máquinas, las órdenes trabajadas, las condiciones de proceso y las
+      novedades registradas.
+    </div>
+
+    {% for group in machine_groups %} {% if not loop.first %}
+    <hr class="divider" />
+    {% endif %}
+    <br />
+    <div class="machine-banner">
+      {{ group.machine_code }} - {{ group.machine_name }}
+      <span>
+        | Estado: {{ format_machine_status(group.setup.machine_status) }} {% if
+        group.setup.machine_status == 'en_produccion' %} {% if
+        group.orders|length %} | {{ group.orders|length }} orden(es)
+        registradas{% else %} | sin orden registrada{% endif %} {% endif %}
+      </span>
+    </div>
+
+    {% if group.setup.machine_status in ['en_mantenimiento',
+    'fuera_de_servicio'] %}
+    <div class="order-card">
+      <div class="section-title">Observación de máquina</div>
+      <p class="section-lead">
+        La máquina {{ group.machine_code }} - {{ group.machine_name }} su estado
+        actualmente es {{
+        format_machine_status(group.setup.machine_status)|lower }}.
+      </p>
+      {% if group.setup.machine_status_description %}
+      <p class="support-text">Se realizó una observación del estado:</p>
+      <p class="section-title">{{ group.setup.machine_status_description }}.</p>
+      {% else %}
+      <p class="support-text">
+        No se registró observación de estado adicional.
+      </p>
+      {% endif %}
+    </div>
+    {% elif group.orders %} {% for order in group.orders %}
+    <div class="order-card">
+      <div class="section-title">
+        Orden de producción {{ order.work_order or 'sin código registrado' }}
+      </div>
+
+      <p class="section-lead">
+        {% if loop.first %} Se recibe el turno en la máquina {{
+        group.machine_name }} {% if order.work_order %}con la orden de
+        producción {{ order.work_order }}{% else %}con una orden sin consecutivo
+        registrado{% endif %} {% if order.ref_order %}correspondiente a la
+        referencia {{ order.ref_order }}{% endif %}. {% else %} Con la máquina
+        {{ group.machine_code }} - {{ group.machine_name }} en operación, se da
+        continuidad de producción {% if order.work_order %}con la orden
+        consecutiva {{ order.work_order }}{% else %}con una nueva orden sin
+        consecutivo registrado{% endif %} {% if order.ref_order
+        %}correspondiente a la referencia {{ order.ref_order }}{% endif %}. {%
+        endif %} {% if order.product_to_laminate %}El producto a laminar
+        reportado es {{ order.product_to_laminate }}.{% endif %} {% if
+        order.meters_to_produce %} La meta de producción definida para esta
+        orden es de {{ order.meters_to_produce }} metros cuadrados.{% endif %}
+        {% if order.order_status == 'closed' %} La orden quedó cerrada durante
+        el turno.{% else %} La orden permaneció activa al momento del cierre o
+        corte del reporte.{% endif %}
+      </p>
+      {% if group.setup.machine_status != 'en_produccion' %}
+      <p class="support-text">
+        La máquina se encuentra {{
+        format_machine_status(group.setup.machine_status)|lower }}.
+      </p>
+      {% endif %}
+
+      <table class="detail-table">
+        <tr>
+          <td class="detail-label">Orden</td>
+          <td>{{ order.work_order or 'No registrada' }}</td>
+          <td class="detail-label">Referencia</td>
+          <td>{{ order.ref_order or 'No registrada' }}</td>
+        </tr>
+        <tr>
+          <td class="detail-label">Estado de la máquina</td>
+          <td>{{ order.machine_status or 'No registrado' }}</td>
+          <td class="detail-label">Estado de la orden</td>
+          <td>{{ order.order_status or 'No registrado' }}</td>
+        </tr>
+        <tr>
+          <td class="detail-label">Inicio de orden</td>
+          <td>{{ order.created_at_display or 'No registrado' }}</td>
+          <td class="detail-label">Cierre de orden</td>
+          <td>{{ order.closed_at_display or 'No registrado' }}</td>
+        </tr>
+        <tr>
+          <td class="detail-label">Metros programados</td>
+          <td>{{ order.meters_to_produce or 'No registrado' }}</td>
+          <td class="detail-label">Referencia de Producto</td>
+          <td>{{ order.product_to_laminate or 'No registrado' }}</td>
+        </tr>
+      </table>
+
+      {% if order.machine_status_description %}
+      <div class="subsection-title">Observación de estado</div>
+      <p class="support-text">{{ order.machine_status_description }}</p>
+      {% endif %}
+
+      <div class="subsection-title">
+        Condiciones de proceso y evidencia fotográfica
+      </div>
+      <p class="support-text">
+        Las imágenes de las condiciones de proceso para esta orden son las
+        siguientes:
+      </p>
+
+      {% set media = namespace(found=false) %} {% set media_sections = [
+      ('Materias primas', order.img_materias_primas), ('Condiciones de proceso',
+      order.img_condiciones_proceso), ('Temperatura de secadores',
+      order.img_temp_secadores), ('Extracción de adhesivo',
+      order.img_extraccion_adhesivo), ('Paradas turno máquina',
+      order.img_tiempo_paradas_turno_maquina) ] %} {% for photo_label, raw_items
+      in media_sections %} {% if raw_items is string %} {% set photo_items =
+      [raw_items] %} {% elif raw_items is sequence and raw_items is not mapping
+      %} {% set photo_items = raw_items %} {% else %} {% set photo_items = [] %}
+      {% endif %} {% if photo_items %} {% set media.found = true %}
+      <div class="photo-block">
+        <div class="photo-category">{{ photo_label }}</div>
+        {% for img_item in photo_items %} {% set img_url = img_item.url if
+        img_item is mapping else img_item %} {% set img_title = img_item.title
+        if img_item is mapping else '' %} {% if img_url %}
+        <div class="photo-item">
+          <div class="photo-title">
+            {{ img_title or (photo_label + ' ' + loop.index|string) }}
+          </div>
+          <img class="photo" src="{{ img_url }}" alt="{{ photo_label }}" />
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+      {% endif %} {% endfor %} {% if not media.found %}
+      <p class="support-text muted">
+        No se adjuntó evidencia fotográfica para esta orden.
+      </p>
+      {% endif %}
+
+      <div class="subsection-title">
+        Novedades durante la realización de la orden
+      </div>
+      {% if order.events %}
+      <p class="support-text">
+        Durante la realización de la orden {% if order.work_order %}{{
+        order.work_order }}{% else %}registrada en esta máquina{% endif %} se
+        presentaron las siguientes novedades:
+      </p>
+      {% for ev in order.events %}
+      <div class="event-card">
+        <div class="support-text">
+          <span class="event-time"
+            >{{ ev.event_time }}{% if ev.event_end_time %} - {{
+            ev.event_end_time }}{% endif %}</span
+          >
+          : {{ ev.description }}
+        </div>
+      </div>
+      {% endfor %} {% else %}
+      <p class="support-text muted">
+        No se presentaron novedades registradas durante la ejecución de esta
+        orden.
+      </p>
+      {% endif %}
+    </div>
+    {% endfor %} {% else %}
+    <div class="order-card">
+      <div class="section-title">
+        Máquina sin orden de producción registrada
+      </div>
+      <p class="section-lead">
+        La máquina {{ group.machine_code }} - {{ group.machine_name }} fue
+        recibida sin una orden de producción activa registrada en el sistema.
+      </p>
+      <p class="support-text">
+        La máquina se encuentra {{
+        format_machine_status(group.setup.machine_status)|lower }}.
+      </p>
+      {% if group.setup.machine_status_description %}
+      <div class="subsection-title">Observación de estado</div>
+      <p class="support-text">{{ group.setup.machine_status_description }}</p>
+      {% endif %} {% if group.events %}
+      <div class="subsection-title">Novedades asociadas a la máquina</div>
+      {% for event in group.events %}
+      <div class="event-card">
+        <div class="support-text">
+          <span class="event-time"
+            >{{ event.event_time }}{% if event.event_end_time %} - {{
+            event.event_end_time }}{% endif %}</span
+          >
+          : {{ event.description }}
+        </div>
+        {% if event.image_path %}
+        <div class="photo-title">Evidencia asociada</div>
+        <img
+          class="photo"
+          src="{{ event.image_path }}"
+          alt="Novedad de máquina"
+        />
+        {% endif %}
+      </div>
+      {% endfor %} {% else %}
+      <p class="support-text muted">
+        Sin novedades registradas para esta máquina.
+      </p>
+      {% endif %}
+    </div>
+    {% endif %} {% endfor %}
+    <div style="height: 50px"></div>
+
+    <table class="signature-table">
+      <tr>
+        <td class="signature-cell">
+          <div class="signature-space"></div>
+          <div class="signature-line"></div>
+          <div class="signature-name">ENTREGADO POR</div>
+          <div class="signature-role">Supervisor saliente</div>
+          <div>
+            {% if shift.user %}{{ shift.user.full_name }}{% else
+            %}________________{% endif %}
+          </div>
+        </td>
+        <td class="signature-cell">
+          <div class="signature-space"></div>
+          <div class="signature-line"></div>
+          <div class="signature-name">RECIBIDO POR</div>
+          <div class="signature-role">Supervisor entrante</div>
+          <div>________________</div>
+        </td>
+        <td class="signature-cell">
+          <div class="signature-space"></div>
+          <div class="signature-line"></div>
+          <div class="signature-name">JEFE DE ÁREA / PLANTA</div>
+          <div class="signature-role">Validación del informe</div>
+          <div>________________</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      {{ informe_num }} | {{ shift.area }} | Turno {{ shift.shift_number }} | {{
+      shift.shift_date.strftime('%d/%m/%Y') }}
+    </div>
+  </body>
+</html>

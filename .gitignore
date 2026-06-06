@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyd
+*.pyo
+.Python
+env/
+env.*
+.venv/
+venv/
+venv.bak/
+venv.bkp/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pytest
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# IDEs
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+
+# SQLite
+*.sqlite3
+*.db
+*.sqlite
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+/build
+/dist
+
+# Vite
+/.vite
+
+# Generated files
+*.log
+*.tmp
+*.temp
+
+# Supabase
+supabase/.cache/
+
+# Docker
+**/docker-compose.override.yml
+**/.docker
+
+# Backend migrations state if generated
+backend/__pycache__/
+frontend/__pycache__/
+
+# Misc
+*.swp
+*~
