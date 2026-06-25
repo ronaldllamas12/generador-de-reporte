@@ -49,12 +49,41 @@ function buildRetainedPayload(items) {
   return payload
 }
 
+function sanitizeFileNamePart(value) {
+  const normalized = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+
+  return normalized || 'foto'
+}
+
+function buildLocalPhotoName(title, file) {
+  const originalName = file?.name || ''
+  const originalExtension = originalName.includes('.') ? originalName.split('.').pop() : ''
+  const extension = originalExtension || (file?.type === 'image/png' ? 'png' : 'jpg')
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+
+  return `${sanitizeFileNamePart(title)}-${stamp}.${extension}`
+}
+
+function renameFile(file, nextName) {
+  if (!file || file.name === nextName) return file
+  return new File([file], nextName, {
+    type: file.type || 'image/jpeg',
+    lastModified: file.lastModified || Date.now(),
+  })
+}
+
 
 
 function ImageUpload({ label, required, value, onChange, compactMode }) {
   const [draftTitle, setDraftTitle] = useState('')
   const [pendingFile, setPendingFile] = useState(null)
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null)
+  const [localSaveStatus, setLocalSaveStatus] = useState('')
   const [showCropper, setShowCropper] = useState(false)
   const [cropRect, setCropRect] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -83,6 +112,7 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
     setCropPos({ x: 0, y: 0 })
     setZoom(1)
     setCroppedAreaPixels(null)
+    setLocalSaveStatus('')
     setShowCropper(openCropAfterLoad)
     e.target.value = ''
   }
@@ -209,18 +239,28 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
     const newUrl = URL.createObjectURL(croppedFile)
     setPendingFile(croppedFile)
     setPendingPreviewUrl(newUrl)
+    setLocalSaveStatus('')
     setShowCropper(false)
   }
 
-  function handleSavePendingPhoto() {
+  async function handleSavePendingPhoto() {
     if (!pendingFile) return
     const title = draftTitle.trim()
     if (!title) return
 
+    const fileToSave = renameFile(pendingFile, buildLocalPhotoName(title, pendingFile))
+    setLocalSaveStatus('saving')
+    const localSaveResult = await saveFileToDevice(fileToSave)
+    if (localSaveResult.method === 'cancelled') {
+      setLocalSaveStatus('cancelled')
+      return
+    }
+    setLocalSaveStatus(localSaveResult.ok ? 'saved' : 'manual')
+
     onChange([
       ...savedEntries,
       {
-        file: pendingFile,
+        file: fileToSave,
         title,
         sourceCategory: 'img_condiciones_proceso',
         isExisting: false,
@@ -283,6 +323,18 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
           {pendingFile ? (
             <p className="text-xs text-slate-500">El título es obligatorio antes de guardar la imagen.</p>
           ) : null}
+          {localSaveStatus === 'saving' ? (
+            <p className="text-xs font-medium text-sky-700">Guardando copia local en este dispositivo...</p>
+          ) : null}
+          {localSaveStatus === 'saved' ? (
+            <p className="text-xs font-medium text-emerald-700">Copia local guardada en este dispositivo.</p>
+          ) : null}
+          {localSaveStatus === 'manual' ? (
+            <p className="text-xs font-medium text-amber-700">El navegador abrió una descarga o selector para guardar la copia local.</p>
+          ) : null}
+          {localSaveStatus === 'cancelled' ? (
+            <p className="text-xs font-medium text-amber-700">No se guardó la copia local. Presiona Guardar foto para intentarlo otra vez.</p>
+          ) : null}
         </div>
 
         {pendingFile ? (
@@ -295,10 +347,10 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
                 <button
                   type="button"
                   onClick={handleSavePendingPhoto}
-                  disabled={!canSavePendingPhoto}
-                  className={`inline-flex items-center justify-center rounded-xl px-3 py-2 font-semibold transition ${canSavePendingPhoto ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-200 text-slate-500'}`}
+                  disabled={!canSavePendingPhoto || localSaveStatus === 'saving'}
+                  className={`inline-flex items-center justify-center rounded-xl px-3 py-2 font-semibold transition ${canSavePendingPhoto && localSaveStatus !== 'saving' ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-200 text-slate-500'}`}
                 >
-                  Guardar foto
+                  {localSaveStatus === 'saving' ? 'Guardando...' : 'Guardar foto'}
                 </button>
               </div>
             </div>
@@ -882,7 +934,7 @@ export default function ShiftSetupForm({
 // Helper: save a File to user's device using File System Access API if available,
 // otherwise trigger a download via an anchor with `download` attribute.
 async function saveFileToDevice(file) {
-  if (!file) return
+  if (!file) return { ok: false, method: 'none' }
 
   // Prefer modern File System Access API when available (desktop Chromium, Edge, etc.)
   if (window.showSaveFilePicker) {
@@ -900,10 +952,27 @@ async function saveFileToDevice(file) {
       const writable = await handle.createWritable()
       await writable.write(file)
       await writable.close()
-      return
+      return { ok: true, method: 'file-picker' }
     } catch (err) {
-      // fallback to download
+      if (err?.name === 'AbortError') {
+        return { ok: false, method: 'cancelled' }
+      }
       console.warn('showSaveFilePicker error, falling back to download', err)
+    }
+  }
+
+  if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: file.name,
+      })
+      return { ok: true, method: 'share' }
+    } catch (err) {
+      if (err?.name === 'AbortError') {
+        return { ok: false, method: 'cancelled' }
+      }
+      console.warn('navigator.share error, falling back to download', err)
     }
   }
 
@@ -916,4 +985,5 @@ async function saveFileToDevice(file) {
   a.click()
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+  return { ok: true, method: 'download' }
 }
