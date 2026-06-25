@@ -1,9 +1,12 @@
 import mimetypes
 import re
+import sys
 import unicodedata
 import uuid
 from datetime import datetime, time
 from pathlib import Path
+from urllib.parse import unquote, urlparse
+from urllib.request import url2pathname
 
 import httpx
 from app.core.config import get_settings
@@ -38,7 +41,11 @@ class ReportService:
 
             output_file = reports_dir / f"reporte_turno_{shift.id}.pdf"
             with open(output_file, "wb") as pdf_file:
-                result = pisa.CreatePDF(html_content, dest=pdf_file)
+                result = pisa.CreatePDF(
+                    html_content,
+                    dest=pdf_file,
+                    link_callback=self._resolve_pdf_resource,
+                )
             if result.err:
                 raise RuntimeError(f"Error al generar el PDF: {result.err}")
             return f"/static/reports/{output_file.name}"
@@ -49,6 +56,16 @@ class ReportService:
                     p.unlink()
                 except Exception:
                     pass
+
+    def _resolve_pdf_resource(self, uri: str, _relative_uri: str | None = None) -> str:
+        if not uri.lower().startswith("file:"):
+            return uri
+
+        parsed = urlparse(uri)
+        path = url2pathname(unquote(parsed.path))
+        if sys.platform.startswith("win") and path.startswith(("/", "\\")):
+            path = path[1:]
+        return path
 
     def _prefetch_images(self, machine_groups: list, reports_dir: Path) -> list[Path]:
         tmp_dir = reports_dir / "tmp_images"
@@ -84,7 +101,8 @@ class ReportService:
                 if path and isinstance(path, str) and path.lower().startswith("http"):
                     try:
                         saved = self._download_remote_image(path, tmp_dir)
-                        ev["image_path"] = f"file://{saved.resolve().as_posix()}"
+                        # Use absolute file path for xhtml2pdf compatibility
+                        ev["image_path"] = saved.resolve().as_uri()
                         downloaded.append(saved)
                     except Exception as exc:
                         raise RuntimeError(f"Error descargando imagen de evento: {path} -> {exc}")
@@ -104,7 +122,8 @@ class ReportService:
                         try:
                             saved = self._download_remote_image(img_url, tmp_dir)
                             downloaded.append(saved)
-                            local_ref = f"file://{saved.resolve().as_posix()}"
+                            # Use absolute file path for xhtml2pdf compatibility
+                            local_ref = saved.resolve().as_uri()
                             if isinstance(img, dict):
                                 new_items.append({"url": local_ref, "title": img_title})
                             else:

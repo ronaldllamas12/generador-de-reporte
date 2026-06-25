@@ -301,17 +301,17 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
         ) : null}
 
         {showCropper ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 max-w-3xl rounded-xl bg-white p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-3">
+            <div className="max-h-[calc(100vh-1.5rem)] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-4">
               <div className="mb-3 text-sm font-medium">Ajusta el recorte y el zoom</div>
-              <div className="mb-3 flex gap-2">
+              <div className="mb-3 flex flex-wrap gap-2">
                 <button type="button" onClick={() => setAspectPreset('free')} className={`rounded-xl px-3 py-1 ${aspectPreset==='free'?'bg-slate-200':'bg-slate-100'}`}>Libre</button>
                 <button type="button" onClick={() => setAspectPreset('1')} className={`rounded-xl px-3 py-1 ${aspectPreset==='1'?'bg-slate-200':'bg-slate-100'}`}>1:1</button>
                 <button type="button" onClick={() => setAspectPreset((4/3).toString())} className={`rounded-xl px-3 py-1 ${aspectPreset===(4/3).toString()?'bg-slate-200':'bg-slate-100'}`}>4:3</button>
                 <button type="button" onClick={() => setAspectPreset((16/9).toString())} className={`rounded-xl px-3 py-1 ${aspectPreset===(16/9).toString()?'bg-slate-200':'bg-slate-100'}`}>16:9</button>
               </div>
 
-              <div style={{ width: 600, maxWidth: '80vw', height: 360, position: 'relative', background: '#f8fafc' }}>
+              <div className="relative h-[min(58vh,360px)] min-h-64 w-full bg-slate-50">
                 <Cropper
                   image={pendingPreviewUrl}
                   crop={cropPos}
@@ -323,10 +323,10 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
                 />
               </div>
 
-              <div className="mt-3 flex items-center gap-3">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <label className="text-sm">Zoom</label>
-                <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
-                <div className="ml-auto flex gap-2">
+                <input className="min-w-0 flex-1" type="range" min="1" max="3" step="0.01" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
+                <div className="flex w-full justify-end gap-2 sm:ml-auto sm:w-auto">
                   <button type="button" onClick={() => setShowCropper(false)} className="rounded-xl bg-slate-100 px-3 py-2">Cancelar</button>
                   <button type="button" onClick={applyCrop} className="rounded-xl bg-emerald-500 px-3 py-2 text-white">Aplicar recorte</button>
                 </div>
@@ -605,7 +605,7 @@ export default function ShiftSetupForm({
     const title = `Informe - ${machineName || ''} - Turno ${shift?.shift_number || ''}`
     const htmlParts = [
       '<!doctype html><html><head><meta charset="utf-8"><title>' + title + '</title>',
-      '<style>body{font-family:Arial,Helvetica,sans-serif;padding:20px} .photo{display:block;max-width:600px;margin:12px 0;border:1px solid #ccc}</style>',
+      '<style>body{font-family:Arial,Helvetica,sans-serif;padding:20px}.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.photo-card{break-inside:avoid;page-break-inside:avoid;border:1px solid #ccc;padding:6px}.photo-card h3{font-size:13px;margin:0 0 6px}.photo{display:block;width:100%;height:230px;object-fit:cover;border:1px solid #ccc}@media print{body{padding:0}.photos{grid-template-columns:repeat(2,1fr);gap:8px}.photo{height:210px}}</style>',
       '</head><body>' ,
       `<h1>${title}</h1>`,
       `<p><strong>Máquina:</strong> ${machineName || 'N/A'}</p>`,
@@ -613,14 +613,15 @@ export default function ShiftSetupForm({
       `<p><strong>Referencia:</strong> ${refOrder || 'N/A'}</p>`,
       `<p><strong>Metros:</strong> ${meters || 'N/A'}</p>`,
       `<hr/>`,
+      '<div class="photos">',
     ]
 
     urls.forEach((u, idx) => {
       const caption = (processPhotos[idx] && processPhotos[idx].title) ? processPhotos[idx].title : `Foto ${idx + 1}`
-      htmlParts.push(`<div><h3>${caption}</h3><img class="photo" src="${u}" /></div>`)
+      htmlParts.push(`<div class="photo-card"><h3>${caption}</h3><img class="photo" src="${u}" /></div>`)
     })
 
-    htmlParts.push('</body></html>')
+    htmlParts.push('</div></body></html>')
     const content = htmlParts.join('\n')
     const w = window.open('', '_blank')
     if (!w) {

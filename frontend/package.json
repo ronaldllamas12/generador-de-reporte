@@ -15,7 +15,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
-    "react-easy-crop": "^5.8.1"
+    "react-easy-crop": "^4.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

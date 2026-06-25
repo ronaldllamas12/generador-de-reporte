@@ -50,6 +50,26 @@ export default function CloseShiftScreen({
   onStartNextOrder,
 }) {
   const visibleEvents = useMemo(() => events, [events])
+  const setupPhotoGroups = useMemo(
+    () =>
+      setups.flatMap((setup) => {
+        const orderLabel = setup.work_order || setup.ref_order || setup.machine_name || 'Orden sin identificar'
+        return [
+          ['Materias primas', setup.img_materias_primas],
+          ['Condiciones de proceso', setup.img_condiciones_proceso],
+          ['Temperatura de secadores', setup.img_temp_secadores],
+          ['Extracción de adhesivo', setup.img_extraccion_adhesivo],
+          ['Paradas turno máquina', setup.img_tiempo_paradas_turno_maquina],
+        ]
+          .filter(([, items]) => Array.isArray(items) && items.length > 0)
+          .map(([label, items]) => ({
+            key: `${setup.id}-${label}`,
+            label: `${orderLabel} - ${label}`,
+            items,
+          }))
+      }),
+    [setups],
+  )
 
   return (
     <main className="premium-shell px-3 py-5 text-slate-900 sm:px-4 sm:py-6 md:px-6">
@@ -106,6 +126,16 @@ export default function CloseShiftScreen({
 
         </section>
 
+        {setupPhotoGroups.length > 0 ? (
+          <section className="premium-card rounded-3xl p-4 backdrop-blur sm:p-5">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Condiciones de proceso guardadas</p>
+            <div className="mt-4 grid gap-4">
+              {setupPhotoGroups.map((group) => (
+                <PhotoList key={group.key} label={group.label} items={group.items} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="premium-card rounded-3xl p-4 backdrop-blur sm:p-5">
           <button
