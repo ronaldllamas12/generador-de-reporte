@@ -67,7 +67,7 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
 
   const savedEntries = Array.isArray(value) ? value : []
 
-  function handleFiles(e) {
+  function handleFiles(e, { openCropAfterLoad = false } = {}) {
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
     const first = files[0]
@@ -76,9 +76,14 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
       URL.revokeObjectURL(pendingPreviewUrl)
     }
 
+    const nextPreviewUrl = URL.createObjectURL(first)
     setPendingFile(first)
-    setPendingPreviewUrl(URL.createObjectURL(first))
+    setPendingPreviewUrl(nextPreviewUrl)
     setDraftTitle('')
+    setCropPos({ x: 0, y: 0 })
+    setZoom(1)
+    setCroppedAreaPixels(null)
+    setShowCropper(openCropAfterLoad)
     e.target.value = ''
   }
 
@@ -283,19 +288,19 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
         {pendingFile ? (
           <div className="mb-4 overflow-hidden rounded-2xl border border-sky-400/30 bg-sky-50">
             {pendingPreview ? <img ref={imgRef} src={pendingPreview} alt="Vista previa pendiente" className="h-40 w-full object-cover" /> : null}
-            <div className="flex items-center justify-between gap-3 p-3 text-sm text-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm text-slate-700">
               <span className="font-medium">Foto pendiente por guardar</span>
-              <button
-                type="button"
-                onClick={handleSavePendingPhoto}
-                disabled={!canSavePendingPhoto}
-                className={`inline-flex items-center justify-center rounded-xl px-3 py-2 font-semibold transition ${canSavePendingPhoto ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-200 text-slate-500'}`}
-              >
-                Guardar foto
-              </button>
-            </div>
-            <div className="flex items-center justify-end gap-2 p-3">
-              <button type="button" onClick={openCropper} className="inline-flex items-center gap-2 rounded-xl bg-sky-100 px-3 py-2 text-sm text-sky-800">Recortar</button>
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <button type="button" onClick={openCropper} className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-100 px-3 py-2 text-sm font-semibold text-sky-800">Recortar</button>
+                <button
+                  type="button"
+                  onClick={handleSavePendingPhoto}
+                  disabled={!canSavePendingPhoto}
+                  className={`inline-flex items-center justify-center rounded-xl px-3 py-2 font-semibold transition ${canSavePendingPhoto ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-200 text-slate-500'}`}
+                >
+                  Guardar foto
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
@@ -367,7 +372,7 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
           <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-blue-100 px-4 font-semibold text-blue-900 transition hover:bg-blue-200 flex-1 ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}>
             <Camera className="h-4 w-4" />
             Tomar foto
-            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFiles} />
+            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFiles(e, { openCropAfterLoad: true })} />
           </label>
           <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-slate-100 px-4 font-semibold text-slate-900 transition hover:bg-slate-200 flex-1 ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}>
             <ImagePlus className="h-4 w-4" />
