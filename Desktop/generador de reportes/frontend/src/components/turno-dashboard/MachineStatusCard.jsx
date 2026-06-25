@@ -63,7 +63,7 @@ export default function MachineStatusCard({ machine, selected, onSelect, onStart
             disabled={orderIsActive}
             className={`inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
               orderIsActive
-                ? 'cursor-not-allowed bg-emerald-600 text-white opacity-80'
+                ? 'cursor-not-allowed bg-blue text-white opacity-80'
                 : isStarted
                 ? 'premium-btn-primary'
                 : 'premium-btn-primary'

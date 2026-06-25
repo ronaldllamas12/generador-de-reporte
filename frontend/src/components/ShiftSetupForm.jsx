@@ -415,20 +415,16 @@ function ImageUpload({ label, required, value, onChange, compactMode }) {
           </div>
         ) : null}
 
-        <div className="mb-4 rounded-2xl border border-sky-400/20 bg-white p-3 text-xs text-slate-600">
-          Las fotos quedan en borrador dentro del formulario y solo se guardan cuando presionas confirmar. La vista previa se muestra desde el archivo local del dispositivo, no desde Cloudinary.
-        </div>
-
         {/* Upload buttons - Camera and Gallery */}
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-blue-100 px-4 font-semibold text-blue-900 transition hover:bg-blue-200 flex-1 ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}>
-            <Camera className="h-4 w-4" />
+            <Camera className="h-12 w-7" />
             Tomar foto
             <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFiles(e, { openCropAfterLoad: true })} />
           </label>
           <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-slate-100 px-4 font-semibold text-slate-900 transition hover:bg-slate-200 flex-1 ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}>
-            <ImagePlus className="h-4 w-4" />
-            Galería
+            <ImagePlus className="h-12 w-7" />
+            Subir desde Galería
             <input type="file" accept="image/*" className="hidden" onChange={handleFiles} />
           </label>
         </div>
@@ -709,7 +705,7 @@ export default function ShiftSetupForm({
             <button
               type="button"
               onClick={onBack}
-              className={`premium-btn-secondary inline-flex items-center gap-2 rounded-2xl px-4 font-semibold ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}
+              className={`premium-btn-inciado inline-flex items-center gap-2 rounded-2xl px-4 font-semibold ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}
             >
               <ArrowLeft className="h-4 w-4" />
               Regresar
@@ -826,7 +822,7 @@ export default function ShiftSetupForm({
                   <input
                     type="text"
                     value={refOrder}
-                    onChange={(e) => setRefOrder(e.target.value)}
+                    onChange={(e) => setRefOrder(e.target.value.toUpperCase())}
                     placeholder="Ej. LN80-P4-G55S_1520"
                     className={`${compactMode ? 'h-14 text-lg' : 'h-12 text-base'} premium-input w-full rounded-2xl px-4 placeholder:text-slate-500`}
                   />
@@ -852,7 +848,7 @@ export default function ShiftSetupForm({
                   <input
                     type="text"
                     value={productToLaminate}
-                    onChange={(e) => setProductToLaminate(e.target.value)}
+                    onChange={(e) => setProductToLaminate(e.target.value.toUpperCase())}
                     placeholder="Ej. 15MX3000ML"
                     className={`${compactMode ? 'h-14 text-lg' : 'h-12 text-base'} premium-input w-full rounded-2xl px-4 placeholder:text-slate-500`}
                   />
@@ -898,7 +894,7 @@ export default function ShiftSetupForm({
             <button
               type="button"
               onClick={currentStep === 0 ? onBack : handlePreviousStep}
-              className={`premium-btn-secondary inline-flex items-center justify-center gap-3 rounded-2xl px-5 font-semibold ${compactMode ? 'h-14 text-base' : 'h-12 text-sm'}`}
+              className={`premium-btn-iniciado inline-flex items-center justify-center gap-3 rounded-2xl px-5 font-semibold ${compactMode ? 'h-14 text-base' : 'h-12 text-sm'}`}
             >
               <ArrowLeft className="h-4 w-4" />
               {currentStep === 0 ? 'Salir del asistente' : 'Volver al paso anterior'}

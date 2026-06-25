@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, Loader2, Smartphone, X } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Loader2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 export default function EventForm({
@@ -39,7 +39,7 @@ export default function EventForm({
       return {
         label: 'Orden activa',
         hint: 'La novedad se registrará sobre la orden activa de esta máquina.',
-        className: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+        className: 'border-purple-200 bg-purple-50 text-purple-900',
       }
     }
     return {
@@ -67,19 +67,12 @@ export default function EventForm({
       <div className="premium-card w-full max-w-xl rounded-3xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-sky-700/80">Nueva novedad</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-purple-700">Nueva novedad</p>
             <h2 className="text-2xl font-semibold text-slate-900">Registrar evento</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onToggleCompactMode}
-              className={`premium-btn-secondary inline-flex items-center gap-2 rounded-2xl px-3 font-semibold ${compactMode ? 'h-12 text-base' : 'h-10 text-sm'}`}
-            >
-              <Smartphone className="h-4 w-4" />
-              {compactMode ? 'Compacto activo' : 'Compacto'}
-            </button>
-            <button onClick={onClose} type="button" className="premium-btn-secondary rounded-2xl p-2">
+            
+            <button onClick={onClose} type="button" className="premium-btn-danger rounded-2xl p-2">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -105,7 +98,7 @@ export default function EventForm({
                 className={`${compactMode ? 'h-14 text-lg' : 'h-12 text-base'} premium-input w-full appearance-none rounded-2xl px-4 pr-12`}
               >
                 {machines.map((machine) => (
-                  <option key={machine.id} value={machine.id} className="bg-white text-slate-900">
+                  <option key={machine.id} value={machine.id} className="bg-white text-purple-900">
                     {machine.code} - {machine.name}
                   </option>
                 ))}
@@ -132,7 +125,7 @@ export default function EventForm({
           <button
             type="button"
             onClick={onClose}
-            className={`premium-btn-secondary inline-flex items-center justify-center gap-2 rounded-2xl px-5 font-semibold ${compactMode ? 'h-14 text-base' : 'h-12 text-sm'}`}
+            className={`premium-btn-iniciado inline-flex items-center justify-center gap-2 rounded-2xl px-5 font-semibold ${compactMode ? 'h-14 text-base' : 'h-12 text-sm'}`}
           >
             <ArrowLeft className="h-4 w-4" />
             Regresar

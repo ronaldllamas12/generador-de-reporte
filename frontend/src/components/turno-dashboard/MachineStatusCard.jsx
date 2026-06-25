@@ -14,7 +14,7 @@ export default function MachineStatusCard({ machine, selected, onSelect, onStart
   return (
     <article
       onClick={onSelect}
-      className={`premium-card cursor-pointer rounded-3xl p-4 text-left transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.12)] ${selected ? 'border-sky-400/70 ring-4 ring-sky-400/15' : ''}`}
+      className={`premium-card cursor-pointer rounded-3xl p-4 text-left transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.12)] ${selected ? 'border-purple-400 ring-4 ring-purple-400' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -45,7 +45,7 @@ export default function MachineStatusCard({ machine, selected, onSelect, onStart
             event.stopPropagation()
             onViewDetails?.()
           }}
-          className="premium-btn-secondary inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+          className="premium-btn-primary inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
         >
           <CheckCircle2 className="h-6 w-8" />
           Ver detalle
@@ -63,9 +63,9 @@ export default function MachineStatusCard({ machine, selected, onSelect, onStart
             disabled={orderIsActive}
             className={`inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
               orderIsActive
-                ? 'cursor-not-allowed bg-emerald-600 text-white opacity-80'
+                ? 'cursor-not-allowed bg-blue text-white opacity-80'
                 : isStarted
-                ? 'premium-btn-primary'
+                ? 'premium-btn-iniciado'
                 : 'premium-btn-primary'
             }`}
           >
@@ -83,7 +83,7 @@ export default function MachineStatusCard({ machine, selected, onSelect, onStart
             event.stopPropagation()
             onOpenNewOrder?.()
           }}
-          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-purple bg-blue-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500"
         >
           <PlayCircle className="h-4 w-4" />
           Abrir nueva orden en esta máquina
@@ -96,7 +96,7 @@ export default function MachineStatusCard({ machine, selected, onSelect, onStart
           event.stopPropagation()
           onEditStatus()
         }}
-        className="premium-btn-secondary mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold"
+        className="premium-btn-change mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold"
       >
         <PencilLine className="h-4 w-4" />
         Cambiar estado
