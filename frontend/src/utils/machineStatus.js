@@ -1,9 +1,4 @@
 export const MACHINE_STATUS_META = {
-  sin_registro: {
-    label: 'Neutro',
-    badge: 'border-slate-300 bg-slate-100 text-slate-700',
-    panel: 'bg-slate-50',
-  },
   en_produccion: {
     label: 'En producción',
     badge: 'border-emerald-500/20 bg-emerald-500 text-emerald-950',
@@ -29,7 +24,6 @@ export const MACHINE_STATUS_FILTERS = [
 ]
 
 export const MACHINE_STATUS_OPTIONS = [
-  { value: 'sin_registro', label: 'Neutro' },
   { value: 'en_produccion', label: 'En producción' },
   { value: 'en_mantenimiento', label: 'En mantenimiento' },
   { value: 'fuera_de_servicio', label: 'Fuera de servicio' },
